@@ -1,0 +1,13 @@
+@model ErrorViewModel
+@{
+    ViewData["Title"] = Model.Title;
+}
+<div class="container rd-section text-center">
+    <p class="rd-error-code" aria-hidden="true">@Model.StatusCode</p>
+    <h1 class="rd-page-title">@Model.Title</h1>
+    <p class="lead text-muted mb-4">@Model.Message</p>
+    <div class="d-flex justify-content-center gap-2 flex-wrap">
+        <a class="btn btn-primary" asp-controller="Home" asp-action="Index"><i class="bi bi-house" aria-hidden="true"></i> Back to home</a>
+        <a class="btn btn-outline-secondary" href="javascript:history.back()">Go back</a>
+    </div>
+</div>

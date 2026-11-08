@@ -1,0 +1,107 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    var today = DateOnly.FromDateTime(DateTime.Today);
+    var upcoming = Model.Upcoming(today);
+}
+<div class="container rd-section">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <p class="rd-eyebrow mb-1">Organiser</p>
+            <h1 class="rd-page-title mb-0">Dashboard</h1>
+        </div>
+        <a class="btn btn-primary" asp-controller="OrganiserEvents" asp-action="Create"><i class="bi bi-plus-lg" aria-hidden="true"></i> Create event</a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-sm-4">
+            <div class="card card-body rd-stat">
+                <div class="rd-stat-value">@Model.Events.Count</div>
+                <div class="rd-stat-label">Events created</div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card card-body rd-stat">
+                <div class="rd-stat-value">@Model.TotalEnrolments</div>
+                <div class="rd-stat-label">Total enrolments</div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card card-body rd-stat">
+                <div class="rd-stat-value">@upcoming.Count</div>
+                <div class="rd-stat-label">Upcoming events</div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.Events.Count == 0)
+    {
+        <div class="rd-empty card card-body">
+            <div><i class="bi bi-flag" aria-hidden="true"></i></div>
+            <h2 class="h4 mt-2">You haven't created an event yet</h2>
+            <p>Create your first event, add categories and participants can start enrolling.</p>
+            <div><a class="btn btn-primary" asp-controller="OrganiserEvents" asp-action="Create">Create your first event</a></div>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <h2 class="h4 mb-3">Upcoming dates</h2>
+                @if (upcoming.Count == 0)
+                {
+                    <div class="card card-body text-muted">No upcoming events. Create one to get started.</div>
+                }
+                else
+                {
+                    <ul class="list-group">
+                        @foreach (var ev in upcoming.Take(6))
+                        {
+                            var days = ev.EventDate.DayNumber - today.DayNumber;
+                            <li class="list-group-item d-flex justify-content-between align-items-center gap-3">
+                                <div>
+                                    <a asp-controller="OrganiserEnrolments" asp-action="Index" asp-route-eventId="@ev.EventId" class="fw-semibold">@ev.Name</a>
+                                    <div class="small text-muted">@UiHelpers.LongDate(ev.EventDate)</div>
+                                </div>
+                                <span class="rd-countdown">@(days == 0 ? "Today" : days == 1 ? "1 day" : days + " days")</span>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+
+            <div class="col-lg-8">
+                <h2 class="h4 mb-3">My events</h2>
+                <div class="rd-table-wrap table-responsive">
+                    <table class="table rd-table align-middle">
+                        <thead>
+                            <tr>
+                                <th scope="col">Event</th>
+                                <th scope="col">Date</th>
+                                <th scope="col">Status</th>
+                                <th scope="col" class="text-end">Enrolments</th>
+                                <th scope="col" class="text-end"><span class="visually-hidden">Actions</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ev in Model.Events)
+                            {
+                                var badge = UiHelpers.EventBadge(ev.Status);
+                                <tr>
+                                    <th scope="row">@ev.Name</th>
+                                    <td>@UiHelpers.LongDate(ev.EventDate)</td>
+                                    <td><span class="rd-badge @badge.Css">@badge.Label</span></td>
+                                    <td class="text-end fw-semibold">@ev.TotalEnrolments</td>
+                                    <td class="text-end text-nowrap">
+                                        <a class="btn btn-outline-primary btn-sm" asp-controller="OrganiserEnrolments" asp-action="Index" asp-route-eventId="@ev.EventId">Enrolments</a>
+                                        <a class="btn btn-outline-secondary btn-sm" asp-controller="OrganiserEvents" asp-action="Edit" asp-route-id="@ev.EventId">Edit</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>

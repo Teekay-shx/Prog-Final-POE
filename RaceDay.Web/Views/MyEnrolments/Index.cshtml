@@ -1,0 +1,65 @@
+@model List<ApiEnrolment>
+@{
+    ViewData["Title"] = "My enrolments";
+}
+<div class="container rd-section">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <h1 class="rd-page-title mb-0">My enrolments</h1>
+        <a class="btn btn-primary" asp-controller="Home" asp-action="Index"><i class="bi bi-search" aria-hidden="true"></i> Find an event</a>
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <div class="rd-empty card card-body">
+            <div><i class="bi bi-clipboard-check" aria-hidden="true"></i></div>
+            <h2 class="h4 mt-2">You haven't enrolled for anything yet</h2>
+            <p>Pick an event, choose a category and you'll be on the start list straight away.</p>
+            <div><a class="btn btn-primary" asp-controller="Home" asp-action="Index">Browse events</a></div>
+        </div>
+    }
+    else
+    {
+        <div class="rd-table-wrap table-responsive">
+            <table class="table rd-table align-middle">
+                <thead>
+                    <tr>
+                        <th scope="col">Event</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Bib</th>
+                        <th scope="col">Enrolled on</th>
+                        <th scope="col">Status</th>
+                        <th scope="col" class="text-end"><span class="visually-hidden">Actions</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var enrolment in Model)
+                    {
+                        var badge = UiHelpers.EnrolmentBadge(enrolment.Status);
+                        <tr>
+                            <th scope="row"><a asp-controller="Events" asp-action="Details" asp-route-id="@enrolment.EventId">@enrolment.EventName</a></th>
+                            <td>@enrolment.CategoryName</td>
+                            <td>@(string.IsNullOrEmpty(enrolment.BibNumber) ? "—" : enrolment.BibNumber)</td>
+                            <td>@enrolment.EnrolmentDate.ToString("d MMM yyyy", System.Globalization.CultureInfo.InvariantCulture)</td>
+                            <td><span class="rd-badge @badge.Css">@badge.Label</span></td>
+                            <td class="text-end">
+                                @if (enrolment.Status != "Cancelled" && enrolment.ResultId is null)
+                                {
+                                    <form asp-action="Cancel" asp-route-id="@enrolment.EnrolmentId" method="post" class="d-inline"
+                                          data-confirm="Cancel your enrolment for @enrolment.EventName (@enrolment.CategoryName)?">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">Cancel</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <p class="text-muted small mt-3 mb-0">
+            <span class="rd-badge rd-badge-amber">Registered</span> you're on the start list &nbsp;
+            <span class="rd-badge rd-badge-green">Checked in</span> the organiser has checked you in &nbsp;
+            <span class="rd-badge rd-badge-red">Cancelled</span> no longer taking part
+        </p>
+    }
+</div>

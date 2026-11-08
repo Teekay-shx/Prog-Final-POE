@@ -1,0 +1,67 @@
+@model List<ApiOrganiserEvent>
+@{
+    ViewData["Title"] = "My events";
+}
+<div class="container rd-section">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <h1 class="rd-page-title mb-0">My events</h1>
+        <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-lg" aria-hidden="true"></i> Create event</a>
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <div class="rd-empty card card-body">
+            <div><i class="bi bi-flag" aria-hidden="true"></i></div>
+            <h2 class="h4 mt-2">No events yet</h2>
+            <p class="mb-0">Create an event, then add categories so participants can enrol.</p>
+        </div>
+    }
+    else
+    {
+        <div class="rd-table-wrap table-responsive">
+            <table class="table rd-table align-middle">
+                <thead>
+                    <tr>
+                        <th scope="col">Event</th>
+                        <th scope="col">Type</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Status</th>
+                        <th scope="col" class="text-end">Categories</th>
+                        <th scope="col" class="text-end">Enrolments</th>
+                        <th scope="col" class="text-end"><span class="visually-hidden">Actions</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ev in Model)
+                    {
+                        var badge = UiHelpers.EventBadge(ev.Status);
+                        <tr>
+                            <th scope="row">
+                                <a asp-controller="Events" asp-action="Details" asp-route-id="@ev.EventId">@ev.Name</a>
+                                @if (!string.IsNullOrWhiteSpace(ev.Location))
+                                {
+                                    <div class="small text-muted fw-normal">@ev.Location</div>
+                                }
+                            </th>
+                            <td><span aria-hidden="true">@UiHelpers.TypeIcon(ev.Type)</span> @ev.Type</td>
+                            <td>@UiHelpers.LongDate(ev.EventDate)</td>
+                            <td><span class="rd-badge @badge.Css">@badge.Label</span></td>
+                            <td class="text-end">@ev.CategoryCount</td>
+                            <td class="text-end">@ev.TotalEnrolments</td>
+                            <td class="text-end text-nowrap">
+                                <a class="btn btn-outline-primary btn-sm" asp-controller="OrganiserCategories" asp-action="Index" asp-route-eventId="@ev.EventId">Categories</a>
+                                <a class="btn btn-outline-primary btn-sm" asp-controller="OrganiserEnrolments" asp-action="Index" asp-route-eventId="@ev.EventId">Enrolments</a>
+                                <a class="btn btn-outline-primary btn-sm" asp-controller="OrganiserResults" asp-action="Index" asp-route-eventId="@ev.EventId">Results</a>
+                                <a class="btn btn-outline-secondary btn-sm" asp-action="Edit" asp-route-id="@ev.EventId">Edit</a>
+                                <form asp-action="Delete" asp-route-id="@ev.EventId" method="post" class="d-inline"
+                                      data-confirm="Delete “@ev.Name”? Its categories, enrolments and results will be removed too.">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

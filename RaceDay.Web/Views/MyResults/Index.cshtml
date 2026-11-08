@@ -1,0 +1,62 @@
+@model List<ApiResult>
+@{
+    ViewData["Title"] = "My results";
+    var invariant = System.Globalization.CultureInfo.InvariantCulture;
+}
+<div class="container rd-section">
+    <h1 class="rd-page-title mb-4">My results</h1>
+
+    @if (Model.Count == 0)
+    {
+        <div class="rd-empty card card-body">
+            <div><i class="bi bi-stopwatch" aria-hidden="true"></i></div>
+            <h2 class="h4 mt-2">No results yet</h2>
+            <p class="mb-0">Your race history appears here once an organiser has captured your result after an event.</p>
+        </div>
+    }
+    else
+    {
+        <div class="rd-table-wrap table-responsive">
+            <table class="table rd-table align-middle">
+                <thead>
+                    <tr>
+                        <th scope="col">Event</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Finish time</th>
+                        <th scope="col">Position</th>
+                        <th scope="col">Result</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var result in Model)
+                    {
+                        var badge = UiHelpers.ResultBadge(result.Status);
+                        <tr>
+                            <th scope="row"><a asp-controller="Events" asp-action="Details" asp-route-id="@result.EventId">@result.EventName</a></th>
+                            <td>@(result.EventDate.HasValue ? UiHelpers.LongDate(result.EventDate.Value) : "—")</td>
+                            <td>@result.CategoryName</td>
+                            <td>@UiHelpers.FinishTime(result.FinishTime)</td>
+                            <td>
+                                @if (result.Position.HasValue && result.TotalFinishers > 0)
+                                {
+                                    <span class="rd-position">@UiHelpers.Ordinal(result.Position.Value)</span>
+                                    <span class="text-muted">out of @result.TotalFinishers.ToString("N0", invariant) @(result.TotalFinishers == 1 ? "finisher" : "finishers")</span>
+                                }
+                                else if (result.Position.HasValue)
+                                {
+                                    <span class="rd-position">@UiHelpers.Ordinal(result.Position.Value)</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                            </td>
+                            <td><span class="rd-badge @badge.Css">@badge.Label</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

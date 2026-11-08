@@ -1,0 +1,77 @@
+@model ProfileViewModel
+@{
+    ViewData["Title"] = "My profile";
+    var initials = string.Concat(
+        (Model.FullName ?? string.Empty)
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Take(2)
+            .Select(part => char.ToUpperInvariant(part[0])));
+    if (initials.Length == 0)
+    {
+        initials = "?";
+    }
+}
+<div class="container rd-section">
+    <h1 class="rd-page-title mb-4">My profile</h1>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card card-body text-center">
+                @if (!string.IsNullOrEmpty(Model.ProfilePictureUrl))
+                {
+                    <img src="@Model.ProfilePictureUrl" class="rd-avatar mx-auto mb-3" alt="Your profile picture" id="avatar-preview" />
+                }
+                else
+                {
+                    <div class="rd-avatar rd-avatar-initials mx-auto mb-3" aria-hidden="true" data-hide-on-preview>@initials</div>
+                    <img class="rd-avatar mx-auto mb-3 d-none" alt="Preview of the chosen picture" id="avatar-preview" />
+                }
+
+                <h2 class="h4 mb-0">@Model.FullName</h2>
+                <p class="text-muted">@Model.Role</p>
+
+                <form asp-action="UploadPicture" method="post" enctype="multipart/form-data" class="text-start">
+                    <label for="picture" class="form-label">Profile picture</label>
+                    <input type="file" id="picture" name="picture" class="form-control mb-2"
+                           accept="image/jpeg,image/png,image/webp,image/gif" data-preview="#avatar-preview" required />
+                    <div class="form-text mb-3">JPEG, PNG, WebP or GIF, up to 5 MB.</div>
+                    <button type="submit" class="btn btn-outline-primary w-100">Upload picture</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card card-body p-4">
+                <h2 class="h4 mb-3">Personal information</h2>
+                <form asp-action="Update" method="post" novalidate>
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2" role="alert"></div>
+                    <input type="hidden" asp-for="ProfilePictureUrl" />
+
+                    <div class="mb-3">
+                        <label asp-for="FullName" class="form-label"></label>
+                        <input asp-for="FullName" class="form-control" autocomplete="name" />
+                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="email-readonly">Email address</label>
+                        <input id="email-readonly" class="form-control" value="@Model.Email" readonly />
+                        <div class="form-text">Your email address is your login and can't be changed here.</div>
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="Phone" class="form-label"></label>
+                            <input asp-for="Phone" class="form-control" autocomplete="tel" />
+                            <span asp-validation-for="Phone" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="DateOfBirth" class="form-label"></label>
+                            <input asp-for="DateOfBirth" type="date" class="form-control" autocomplete="bday" />
+                            <span asp-validation-for="DateOfBirth" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

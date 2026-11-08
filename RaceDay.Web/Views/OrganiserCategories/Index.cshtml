@@ -1,0 +1,82 @@
+@model CategoriesPageViewModel
+@{
+    var ev = Model.Event;
+    ViewData["Title"] = "Categories · " + ev.Name;
+    var invariant = System.Globalization.CultureInfo.InvariantCulture;
+}
+<div class="container rd-section">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-controller="OrganiserEvents" asp-action="Index">My events</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@ev.Name</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <h1 class="rd-page-title mb-0">Categories</h1>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-primary" asp-controller="OrganiserEnrolments" asp-action="Index" asp-route-eventId="@ev.EventId">Enrolments</a>
+            <a class="btn btn-outline-primary" asp-controller="OrganiserResults" asp-action="Index" asp-route-eventId="@ev.EventId">Results</a>
+        </div>
+    </div>
+    <p class="text-muted">Add the age or distance categories participants can choose from for <strong>@ev.Name</strong> (for example Under 20, Senior, 10km or 21km).</p>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            @if (ev.Categories.Count == 0)
+            {
+                <div class="rd-empty card card-body">
+                    <div><i class="bi bi-tags" aria-hidden="true"></i></div>
+                    <p class="mb-0 mt-2">No categories yet. Add your first one using the form.</p>
+                </div>
+            }
+            else
+            {
+                <div class="rd-table-wrap table-responsive">
+                    <table class="table rd-table align-middle">
+                        <thead>
+                            <tr>
+                                <th scope="col">Category</th>
+                                <th scope="col">Distance</th>
+                                <th scope="col">Ages</th>
+                                <th scope="col">Fee</th>
+                                <th scope="col">Max</th>
+                                <th scope="col" class="text-end"><span class="visually-hidden">Actions</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var category in ev.Categories.OrderBy(c => c.DistanceKm ?? 0).ThenBy(c => c.Name))
+                            {
+                                <tr>
+                                    <th scope="row">@category.Name</th>
+                                    <td>@(category.DistanceKm.HasValue ? category.DistanceKm.Value.ToString("0.##", invariant) + " km" : "—")</td>
+                                    <td>@UiHelpers.AgeRange(category.MinAge, category.MaxAge)</td>
+                                    <td>@(category.EntryFee == 0 ? "Free" : UiHelpers.Money(category.EntryFee))</td>
+                                    <td>@(category.MaxParticipants.HasValue ? category.MaxParticipants.Value.ToString() : "—")</td>
+                                    <td class="text-end text-nowrap">
+                                        <a class="btn btn-outline-secondary btn-sm" asp-action="Edit" asp-route-eventId="@ev.EventId" asp-route-id="@category.CategoryId">Edit</a>
+                                        <form asp-action="Delete" asp-route-eventId="@ev.EventId" asp-route-id="@category.CategoryId" method="post" class="d-inline"
+                                              data-confirm="Remove the category “@category.Name”?">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">Remove</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card card-body p-4">
+                <h2 class="h4 mb-3">Add a category</h2>
+                <form asp-action="Create" asp-route-eventId="@ev.EventId" method="post" novalidate>
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2" role="alert"></div>
+                    <partial name="_CategoryFields" model="Model.NewCategory" />
+                    <button type="submit" class="btn btn-primary w-100">Add category</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

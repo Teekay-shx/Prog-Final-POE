@@ -1,0 +1,28 @@
+@model CategoryFormViewModel
+@{
+    var eventName = ViewData["EventName"] as string;
+    ViewData["Title"] = "Edit category";
+}
+<div class="container rd-section">
+    <div class="rd-form-card">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a asp-controller="OrganiserEvents" asp-action="Index">My events</a></li>
+                <li class="breadcrumb-item"><a asp-action="Index" asp-route-eventId="@Model.EventId">@(string.IsNullOrEmpty(eventName) ? "Categories" : eventName)</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Edit category</li>
+            </ol>
+        </nav>
+        <h1 class="rd-page-title mb-4">Edit category</h1>
+
+        <div class="card card-body p-4">
+            <form asp-action="Edit" asp-route-eventId="@Model.EventId" asp-route-id="@Model.CategoryId" method="post" novalidate>
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2" role="alert"></div>
+                <partial name="_CategoryFields" model="Model" />
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                    <a class="btn btn-outline-secondary" asp-action="Index" asp-route-eventId="@Model.EventId">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

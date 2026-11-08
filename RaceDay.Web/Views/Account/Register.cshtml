@@ -1,0 +1,76 @@
+@model RegisterViewModel
+@{
+    ViewData["Title"] = "Sign up";
+}
+<div class="container rd-section">
+    <div class="rd-form-card">
+        <h1 class="rd-page-title mb-4">Join RaceDay</h1>
+        <div class="card card-body p-4">
+            <form asp-action="Register" method="post" novalidate>
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2" role="alert"></div>
+
+                <fieldset class="mb-4">
+                    <legend class="form-label fs-6">I want to…</legend>
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <input type="radio" class="btn-check" name="Role" id="role-participant" value="Participant" autocomplete="off"
+                                   checked="@(Model.Role != AppRoles.Organiser)" />
+                            <label class="btn btn-outline-primary w-100 py-3" for="role-participant">
+                                <i class="bi bi-person-running d-block fs-3" aria-hidden="true"></i>
+                                Take part in events
+                                <small class="d-block fw-normal">Participant</small>
+                            </label>
+                        </div>
+                        <div class="col-sm-6">
+                            <input type="radio" class="btn-check" name="Role" id="role-organiser" value="Organiser" autocomplete="off"
+                                   checked="@(Model.Role == AppRoles.Organiser)" />
+                            <label class="btn btn-outline-primary w-100 py-3" for="role-organiser">
+                                <i class="bi bi-flag d-block fs-3" aria-hidden="true"></i>
+                                Organise events
+                                <small class="d-block fw-normal">Organiser</small>
+                            </label>
+                        </div>
+                    </div>
+                    <span asp-validation-for="Role" class="text-danger small"></span>
+                </fieldset>
+
+                <div class="mb-3">
+                    <label asp-for="FullName" class="form-label"></label>
+                    <input asp-for="FullName" class="form-control" autocomplete="name" />
+                    <span asp-validation-for="FullName" class="text-danger small"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label">Email address</label>
+                    <input asp-for="Email" class="form-control" autocomplete="email" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="Password" class="form-label"></label>
+                        <input asp-for="Password" class="form-control" autocomplete="new-password" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="ConfirmPassword" class="form-label"></label>
+                        <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label asp-for="Phone" class="form-label">Phone <span class="text-muted fw-normal">(optional)</span></label>
+                        <input asp-for="Phone" class="form-control" autocomplete="tel" />
+                        <span asp-validation-for="Phone" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="DateOfBirth" class="form-label">Date of birth <span class="text-muted fw-normal">(optional)</span></label>
+                        <input asp-for="DateOfBirth" type="date" class="form-control" autocomplete="bday" />
+                        <span asp-validation-for="DateOfBirth" class="text-danger small"></span>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Create account</button>
+            </form>
+        </div>
+        <p class="text-center mt-3">Already registered? <a asp-action="Login">Log in</a></p>
+    </div>
+</div>

@@ -1,0 +1,68 @@
+@model HomeIndexViewModel
+@{
+    ViewData["Title"] = "Upcoming events";
+}
+
+<section class="rd-hero">
+    <div class="container">
+        <p class="rd-eyebrow">Run · Walk · Cycle</p>
+        <h1>Find your next start line</h1>
+        <p class="lead">Browse upcoming events, pick your category and enrol in seconds.</p>
+    </div>
+</section>
+
+<div class="container">
+    <form asp-controller="Home" asp-action="Index" method="get" class="card card-body rd-filter" role="search">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label" for="search">Search</label>
+                <input id="search" name="search" value="@Model.Search" class="form-control" placeholder="Event name or keyword" />
+            </div>
+            <div class="col-sm-6 col-md-2">
+                <label class="form-label" for="type">Type</label>
+                <select id="type" name="type" class="form-select">
+                    <option value="">All types</option>
+                    @foreach (var type in UiHelpers.EventTypes)
+                    {
+                        <option value="@type" selected="@(Model.Type == type)">@type</option>
+                    }
+                </select>
+            </div>
+            <div class="col-sm-6 col-md-3">
+                <label class="form-label" for="location">Location</label>
+                <input id="location" name="location" value="@Model.Location" class="form-control" placeholder="City or venue" />
+            </div>
+            <div class="col-md-3 d-flex align-items-center justify-content-between gap-2">
+                <div class="form-check mb-0">
+                    <input class="form-check-input" type="checkbox" id="includePast" name="includePast" value="true" checked="@Model.IncludePast" />
+                    <label class="form-check-label" for="includePast">Include past</label>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                    <a class="btn btn-outline-secondary" asp-controller="Home" asp-action="Index">Reset</a>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div class="rd-section">
+        @if (Model.Events.Count == 0)
+        {
+            <div class="rd-empty card card-body">
+                <div><i class="bi bi-calendar-x" aria-hidden="true"></i></div>
+                <h2 class="h4 mt-2">No events match your filters</h2>
+                <p class="mb-0">Try a different type or location, or include past events.</p>
+            </div>
+        }
+        else
+        {
+            <p class="text-muted mb-3">@Model.Events.Count @(Model.Events.Count == 1 ? "event" : "events") found</p>
+            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+                @foreach (var ev in Model.Events)
+                {
+                    <div class="col"><partial name="_EventCard" model="ev" /></div>
+                }
+            </div>
+        }
+    </div>
+</div>

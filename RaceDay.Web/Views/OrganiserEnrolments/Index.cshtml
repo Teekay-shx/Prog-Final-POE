@@ -1,0 +1,87 @@
+@model EnrolmentsPageViewModel
+@{
+    var ev = Model.Event;
+    ViewData["Title"] = "Enrolments · " + ev.Name;
+}
+<div class="container rd-section">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-controller="OrganiserEvents" asp-action="Index">My events</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@ev.Name</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+        <h1 class="rd-page-title mb-0">Enrolments</h1>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-primary" asp-controller="OrganiserCategories" asp-action="Index" asp-route-eventId="@ev.EventId">Categories</a>
+            <a class="btn btn-outline-primary" asp-controller="OrganiserResults" asp-action="Index" asp-route-eventId="@ev.EventId">Enter results</a>
+        </div>
+    </div>
+    <p class="text-muted">Everyone who has enrolled for <strong>@ev.Name</strong>, with their category and status.</p>
+
+    @if (ev.Categories.Count > 0)
+    {
+        <div class="d-flex flex-wrap gap-2 mb-3" role="group" aria-label="Filter by category">
+            <a asp-action="Index" asp-route-eventId="@ev.EventId"
+               class="btn btn-sm @(Model.CategoryId is null ? "btn-primary" : "btn-outline-primary")">All categories</a>
+            @foreach (var category in ev.Categories.OrderBy(c => c.Name))
+            {
+                <a asp-action="Index" asp-route-eventId="@ev.EventId" asp-route-categoryId="@category.CategoryId"
+                   class="btn btn-sm @(Model.CategoryId == category.CategoryId ? "btn-primary" : "btn-outline-primary")">@category.Name</a>
+            }
+        </div>
+    }
+
+    @if (Model.Enrolments.Count == 0)
+    {
+        <div class="rd-empty card card-body">
+            <div><i class="bi bi-people" aria-hidden="true"></i></div>
+            <h2 class="h4 mt-2">No enrolments yet</h2>
+            <p class="mb-0">Participants appear here as soon as they enrol.</p>
+        </div>
+    }
+    else
+    {
+        <div class="rd-table-wrap table-responsive">
+            <table class="table rd-table align-middle">
+                <thead>
+                    <tr>
+                        <th scope="col">Bib</th>
+                        <th scope="col">Participant</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Enrolled on</th>
+                        <th scope="col">Status</th>
+                        <th scope="col" class="text-end"><span class="visually-hidden">Actions</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var enrolment in Model.Enrolments.OrderBy(e => e.CategoryName).ThenBy(e => e.BibNumber))
+                    {
+                        var badge = UiHelpers.EnrolmentBadge(enrolment.Status);
+                        <tr>
+                            <td>@(string.IsNullOrEmpty(enrolment.BibNumber) ? "—" : enrolment.BibNumber)</td>
+                            <th scope="row">@enrolment.ParticipantName</th>
+                            <td>@enrolment.CategoryName</td>
+                            <td>@enrolment.EnrolmentDate.ToString("d MMM yyyy", System.Globalization.CultureInfo.InvariantCulture)</td>
+                            <td><span class="rd-badge @badge.Css">@badge.Label</span></td>
+                            <td class="text-end text-nowrap">
+                                <form asp-action="UpdateStatus" asp-route-eventId="@ev.EventId" asp-route-enrolmentId="@enrolment.EnrolmentId" method="post" class="d-inline">
+                                    @if (enrolment.Status != "CheckedIn")
+                                    {
+                                        <button type="submit" name="status" value="CheckedIn" class="btn btn-outline-success btn-sm">Check in</button>
+                                    }
+                                    @if (enrolment.Status != "Registered")
+                                    {
+                                        <button type="submit" name="status" value="Registered" class="btn btn-outline-secondary btn-sm">Reset</button>
+                                    }
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="text-muted small mt-2 mb-0">@Model.Enrolments.Count @(Model.Enrolments.Count == 1 ? "enrolment" : "enrolments") shown</p>
+    }
+</div>

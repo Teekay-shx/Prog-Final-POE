@@ -1,0 +1,122 @@
+@model EventDetailsViewModel
+@{
+    var ev = Model.Event;
+    ViewData["Title"] = ev.Name;
+    var banner = string.IsNullOrEmpty(ev.BannerImageUrl) ? Url.Content("~/img/banner-placeholder.svg") : ev.BannerImageUrl;
+    var status = UiHelpers.EventBadge(ev.Status);
+    var isSignedIn = User.Identity?.IsAuthenticated == true;
+    var isOrganiser = User.IsInRole(AppRoles.Organiser);
+}
+<div class="container rd-section">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Events</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@ev.Name</li>
+        </ol>
+    </nav>
+
+    <img src="@banner" class="rd-banner mb-4" alt="@(string.IsNullOrEmpty(ev.BannerImageUrl) ? "" : "Banner for " + ev.Name)" />
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                <span class="rd-type"><span aria-hidden="true">@UiHelpers.TypeIcon(ev.Type)</span> @ev.Type</span>
+                <span class="rd-badge @status.Css">@status.Label</span>
+            </div>
+            <h1 class="rd-page-title mb-4">@ev.Name</h1>
+
+            @if (!string.IsNullOrWhiteSpace(ev.Description))
+            {
+                <p class="rd-description">@ev.Description</p>
+            }
+            else
+            {
+                <p class="text-muted">The organiser hasn't added a description yet.</p>
+            }
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card card-body">
+                <h2 class="h5 mb-3">Event details</h2>
+                <ul class="rd-meta list-unstyled mb-0">
+                    <li><i class="bi bi-calendar-event" aria-hidden="true"></i> <strong>Date:</strong> @UiHelpers.LongDate(ev.EventDate)</li>
+                    @if (!string.IsNullOrWhiteSpace(ev.Location))
+                    {
+                        <li><i class="bi bi-geo-alt" aria-hidden="true"></i> <strong>Location:</strong> @ev.Location</li>
+                    }
+                    @if (ev.Distance.HasValue)
+                    {
+                        <li><i class="bi bi-signpost-split" aria-hidden="true"></i> <strong>Distance:</strong> @ev.Distance.Value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) km</li>
+                    }
+                    <li><i class="bi bi-person-badge" aria-hidden="true"></i> <strong>Organiser:</strong> @ev.OrganiserName</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="h3 mt-5 mb-3">Categories</h2>
+    @if (ev.Categories.Count == 0)
+    {
+        <div class="rd-empty card card-body">
+            <div><i class="bi bi-tags" aria-hidden="true"></i></div>
+            <p class="mb-0 mt-2">No categories have been added to this event yet.</p>
+        </div>
+    }
+    else
+    {
+        <div class="rd-table-wrap table-responsive">
+            <table class="table rd-table align-middle">
+                <thead>
+                    <tr>
+                        <th scope="col">Category</th>
+                        <th scope="col">Distance</th>
+                        <th scope="col">Ages</th>
+                        <th scope="col">Entry fee</th>
+                        <th scope="col">Places</th>
+                        <th scope="col" class="text-end"><span class="visually-hidden">Enrol</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var category in ev.Categories.OrderBy(c => c.DistanceKm ?? 0).ThenBy(c => c.Name))
+                    {
+                        <tr>
+                            <th scope="row">@category.Name</th>
+                            <td>@(category.DistanceKm.HasValue ? category.DistanceKm.Value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) + " km" : "—")</td>
+                            <td>@UiHelpers.AgeRange(category.MinAge, category.MaxAge)</td>
+                            <td>@(category.EntryFee == 0 ? "Free" : UiHelpers.Money(category.EntryFee))</td>
+                            <td>@(category.MaxParticipants.HasValue ? "Max " + category.MaxParticipants.Value : "Unlimited")</td>
+                            <td class="text-end">
+                                @if (Model.EnrolledCategoryIds.Contains(category.CategoryId))
+                                {
+                                    <span class="rd-badge rd-badge-green"><i class="bi bi-check2" aria-hidden="true"></i> You're enrolled</span>
+                                }
+                                else if (Model.CanEnrol)
+                                {
+                                    <form asp-controller="MyEnrolments" asp-action="Enrol" method="post" class="d-inline">
+                                        <input type="hidden" name="categoryId" value="@category.CategoryId" />
+                                        <input type="hidden" name="eventId" value="@ev.EventId" />
+                                        <button type="submit" class="btn btn-primary btn-sm">Enrol</button>
+                                    </form>
+                                }
+                                else if (!isSignedIn)
+                                {
+                                    <a class="btn btn-outline-primary btn-sm" asp-controller="Account" asp-action="Login"
+                                       asp-route-returnUrl="@Url.Action("Details", "Events", new { id = ev.EventId })">Log in to enrol</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (isOrganiser)
+        {
+            <p class="text-muted mt-3 mb-0">Organiser accounts can't enrol in events. Sign up as a participant to take part.</p>
+        }
+        else if (isSignedIn && !Model.CanEnrol)
+        {
+            <p class="text-muted mt-3 mb-0">Enrolment isn't open for this event.</p>
+        }
+    }
+</div>

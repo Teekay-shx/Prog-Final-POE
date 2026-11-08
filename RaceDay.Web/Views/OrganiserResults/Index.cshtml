@@ -1,0 +1,103 @@
+@model ResultsPageViewModel
+@{
+    var ev = Model.Event;
+    ViewData["Title"] = "Results · " + ev.Name;
+    var today = DateOnly.FromDateTime(DateTime.Today);
+    var notYetRun = ev.EventDate > today;
+}
+<div class="container rd-section">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a asp-controller="OrganiserEvents" asp-action="Index">My events</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@ev.Name</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+        <h1 class="rd-page-title mb-0">Results</h1>
+        <a class="btn btn-outline-primary" asp-controller="OrganiserEnrolments" asp-action="Index" asp-route-eventId="@ev.EventId">Enrolments</a>
+    </div>
+    <p class="text-muted">
+        Capture finish times and finishing positions for <strong>@ev.Name</strong>.
+        Each saved result is published to the participant straight away.
+    </p>
+
+    @if (notYetRun)
+    {
+        <div class="alert alert-warning" role="status">
+            <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+            This event takes place on @UiHelpers.LongDate(ev.EventDate). Results are normally captured after it has finished.
+        </div>
+    }
+
+    @if (Model.Enrolments.Count == 0)
+    {
+        <div class="rd-empty card card-body">
+            <div><i class="bi bi-stopwatch" aria-hidden="true"></i></div>
+            <h2 class="h4 mt-2">Nobody to record results for</h2>
+            <p class="mb-0">Results can be entered once participants have enrolled.</p>
+        </div>
+    }
+    else
+    {
+        <div class="rd-table-wrap table-responsive">
+            <table class="table rd-table align-middle">
+                <thead>
+                    <tr>
+                        <th scope="col">Bib</th>
+                        <th scope="col">Participant</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Finish time</th>
+                        <th scope="col">Position</th>
+                        <th scope="col">Result</th>
+                        <th scope="col" class="text-end"><span class="visually-hidden">Save</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var enrolment in Model.Enrolments)
+                    {
+                        var formId = "result-" + enrolment.EnrolmentId;
+                        var status = enrolment.ResultStatus ?? "Finished";
+                        <tr>
+                            <td>@(string.IsNullOrEmpty(enrolment.BibNumber) ? "—" : enrolment.BibNumber)</td>
+                            <th scope="row">
+                                @enrolment.ParticipantName
+                                @if (enrolment.ResultId.HasValue)
+                                {
+                                    <span class="rd-badge rd-badge-green ms-1">Published</span>
+                                }
+                            </th>
+                            <td>@enrolment.CategoryName</td>
+                            <td style="min-width:9.5rem">
+                                <input type="time" step="1" name="FinishTime" form="@formId" class="form-control form-control-sm"
+                                       aria-label="Finish time for @enrolment.ParticipantName"
+                                       value="@(enrolment.FinishTime.HasValue ? enrolment.FinishTime.Value.ToString("HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture) : "")" />
+                            </td>
+                            <td style="min-width:6rem">
+                                <input type="number" min="1" name="Position" form="@formId" class="form-control form-control-sm"
+                                       aria-label="Finishing position for @enrolment.ParticipantName"
+                                       value="@(enrolment.Position.HasValue ? enrolment.Position.Value.ToString() : "")" />
+                            </td>
+                            <td style="min-width:8rem">
+                                <select name="Status" form="@formId" class="form-select form-select-sm" aria-label="Result status for @enrolment.ParticipantName">
+                                    @foreach (var option in UiHelpers.ResultStatuses)
+                                    {
+                                        <option value="@option" selected="@(option == status)">@UiHelpers.ResultBadge(option).Label</option>
+                                    }
+                                </select>
+                            </td>
+                            <td class="text-end">
+                                <form id="@formId" asp-action="Save" asp-route-eventId="@ev.EventId" method="post" class="d-inline">
+                                    <input type="hidden" name="EnrolmentId" value="@enrolment.EnrolmentId" />
+                                    <input type="hidden" name="ResultId" value="@(enrolment.ResultId.HasValue ? enrolment.ResultId.Value.ToString() : "")" />
+                                    <button type="submit" class="btn btn-primary btn-sm">@(enrolment.ResultId.HasValue ? "Update" : "Publish")</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="text-muted small mt-2 mb-0">For DNF (did not finish) or DSQ (disqualified) the time and position are left blank.</p>
+    }
+</div>
