@@ -1,0 +1,24 @@
+# Starts the RaceDay web app in a container with one command:
+#
+#     docker compose up --build
+#
+# Then open http://localhost:8080
+#
+# The API is NOT in this file: it runs on your machine (Visual Studio or `dotnet run`) because it
+# connects to your SQL Server with Windows authentication. The container reaches it through
+# host.docker.internal. Start the API first, using the "http-docker" launch profile (or
+# `dotnet run --project src/RaceDay.Api --launch-profile http-docker`), so it listens on
+# all network interfaces and not only on localhost.
+services:
+  web:
+    build:
+      context: ./src/RaceDay.Web
+    image: raceday-web
+    ports:
+      - "8080:8080"
+    environment:
+      Api__BaseUrl: "http://host.docker.internal:5249"
+    extra_hosts:
+      # Needed on Linux; Docker Desktop (Windows/macOS) already provides this name.
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
