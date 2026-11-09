@@ -6,7 +6,7 @@
 # references because it only talks to the RaceDay API over HTTP.
 #
 #   docker build -t raceday-web ./src/RaceDay.Web
-# ---------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 
 # ---- Stage 1: restore + publish with the full SDK ------------------------
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
